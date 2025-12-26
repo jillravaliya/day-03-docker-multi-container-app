@@ -1,5 +1,4 @@
-
-# DAY 3 — Multi-Container Application (The Rebuild)
+# DAY 3 – Multi-Container Application (The Rebuild)
 
 [![Node.js](https://img.shields.io/badge/Node.js-20-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18.2.0-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
@@ -7,61 +6,62 @@
 [![Express](https://img.shields.io/badge/Express-4.19.2-000000?logo=express&logoColor=white)](https://expressjs.com/)
 [![Docker](https://img.shields.io/badge/Docker-Multi--Container-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
------
+---
 
 ## The Truth About My First Version
 
 I already built this project once.
 
-With AI’s help, everything worked perfectly:
+**👉 [Here's the first version I built with AI's help](https://github.com/jillravaliya/jpeg-to-pdf-dockerized-app)**
 
+With AI's help, everything worked perfectly:
 - Clean Dockerfiles
 - Perfect network setup
 - Beautiful README
+- All commands executed flawlessly
 
 But when someone asked me to explain how it worked, I froze.
 
-“Just run the commands,” I said, pointing at the README.
+> "Just run the commands," I said, pointing at the README.
 
-But I couldn’t run it myself from scratch. I couldn’t explain why the network needed to be created first. I couldn’t debug when something broke.
+But I couldn't run it myself from scratch. I couldn't explain why the network needed to be created first. I couldn't debug when something broke.
 
 **I understood it theoretically, but not practically.**
 
-That’s when I realized: **Having a working project and understanding how to build it are two completely different things.**
+That's when I realized:
+
+> **Having a working project and understanding how to build it are two completely different things.**
 
 So today, I deleted everything and started over.
 
 No AI writing my Dockerfiles. No copying commands without understanding them.
 
-This is the story of building it the second time — and finally understanding what I’m actually doing.
+**This is the story of building it the second time – and finally understanding what I'm actually doing.**
 
------
+---
 
 ## What I Thought vs What I Learned
 
 ### **What I Thought (After First Version):**
-
 - I understand Docker multi-container apps
 - I know how networking works
 - I can build this project
 
 ### **What I Actually Learned (After Rebuilding):**
-
 - Knowing theory ≠ being able to build it
 - Order matters (network first, then containers)
 - Every flag has a purpose (`--name`, `--network`)
 - Mistakes teach you more than perfect code
 
-**The first version looked perfect in the README. This version has mistakes documented.**
+> **The [first version](https://github.com/jillravaliya/jpeg-to-pdf-dockerized-app) looked perfect in the README. This version has mistakes documented.**
+>
+> **But this version is mine.**
 
-**But this version is mine.**
-
------
+---
 
 ## What I Built
 
 A simple **Image to PDF Converter** with:
-
 - **Backend:** Node.js + Express (handles image upload and PDF conversion)
 - **Frontend:** React + Vite (file upload UI)
 - Two separate containers communicating over a Docker network
@@ -83,11 +83,11 @@ Port: 8081 → 5173               Port: 8080 → 3000
 
 Both containers connected via `app-network`.
 
------
+---
 
-## The Journey — Step by Step
+## The Journey – Step by Step
 
------
+---
 
 ### **Step 1: Setting Up the Project Structure**
 
@@ -99,26 +99,30 @@ cd day-03-docker-multi-container-app
 mkdir Backend Frontend
 ```
 
-**Backend structure:**
+![Project Start](screenshots/project%20start%20!.png)
 
-- `app.js` — Express server with `/convert` endpoint
-- `package.json` — Dependencies (express, multer, pdfkit)
-- `Dockerfile` — Container definition
+**Backend structure:**
+- `app.js` – Express server with `/convert` endpoint
+- `package.json` – Dependencies (express, multer, pdfkit)
+- `Dockerfile` – Container definition
 
 **Frontend structure:**
+- `src/App.jsx` – React component with file upload
+- `package.json` – Dependencies (react, vite)
+- `vite.config.mjs` – Vite configuration
+- `Dockerfile` – Container definition
 
-- `src/App.jsx` — React component with file upload
-- `package.json` — Dependencies (react, vite)
-- `vite.config.mjs` — Vite configuration
-- `Dockerfile` — Container definition
+Here's the complete project structure visualized:
+
+![Project Structure](screenshots/Project%20structure.png)
 
 I wrote all the application code first before touching Docker.
 
------
+---
 
 ### **Step 2: Building the Backend Dockerfile (First Mistake)**
 
-I started with the backend because it’s simpler — just a Node.js API server.
+I started with the backend because it's simpler – just a Node.js API server.
 
 **My first Dockerfile:**
 
@@ -132,7 +136,7 @@ ENTRYPOINT ["node"]
 CMD ["app.js"]
 ```
 
-![Backend Dockerfile](screenshots/Backend%20dockerfile.png)
+![Backend Dockerfile](screenshots/Backend%20Dockerfile.png)
 
 **Built the image:**
 
@@ -153,15 +157,15 @@ npm ERR! errno -2
 npm ERR! enoent ENOENT: no such file or directory, open '/app/package.json'
 ```
 
-**I stared at this error for a full minute.**
+I stared at this error for a full minute.
 
-Why is `package.json` missing? It’s right there in my folder.
+> *Why is `package.json` missing? It's right there in my folder.*
 
 **Then it hit me:**
 
-I put `RUN npm install` **before** `COPY . .`
-
-Docker tries to install packages, but the files aren’t in the container yet. There’s no `package.json` to read.
+> I put `RUN npm install` **before** `COPY . .`
+>
+> Docker tries to install packages, but the files aren't in the container yet. There's no `package.json` to read.
 
 **This is exactly what I learned on Day 2:** Instruction order matters.
 
@@ -177,9 +181,9 @@ ENTRYPOINT ["node"]
 CMD ["app.js"]
 ```
 
-**Now COPY comes before RUN.** Files are in the container, then npm can install.
+Now `COPY` comes before `RUN`. Files are in the container, then npm can install.
 
------
+---
 
 ### **Second Mistake: CMD Syntax**
 
@@ -189,7 +193,7 @@ After fixing the order, I built again:
 docker build -t day-03-backend .
 ```
 
-![Backend Image Build](screenshots/Backend%20image%20build.png)
+![Backend Image Build](screenshots/Backend%20image%20build%20.png)
 
 **Build succeeded!** 
 
@@ -209,40 +213,23 @@ docker run -p 8080:3000 day-03-backend
 node: bad option: app.js
 ```
 
-**I was confused.** The file exists. Why is it a “bad option”?
+I was confused. The file exists. Why is it a "bad option"?
 
 Then I remembered from Day 2: `CMD` needs proper array format.
 
-I had written:
-
-```dockerfile
-CMD ["app.js"]
-```
-
-But `ENTRYPOINT ["node"]` means Docker executes:
-
-```bash
-node app.js
-```
-
-That works. So what’s wrong?
-
-**Oh wait.** I had initially tried:
-
+I had initially tried:
 ```dockerfile
 CMD ["run dev"]
 ```
 
-That’s the actual mistake. `["run dev"]` is ONE string, not two arguments.
+> That's the mistake. `["run dev"]` is ONE string, not two arguments.
 
 **Correct format:**
-
 ```dockerfile
 CMD ["run", "dev"]
 ```
 
-But for this backend, I don’t need `run dev`. I just need:
-
+But for this backend, I don't need `run dev`. I just need:
 ```dockerfile
 ENTRYPOINT ["node"]
 CMD ["app.js"]
@@ -270,14 +257,13 @@ docker run -p 8080:3000 day-03-backend
 ![Backend Running](screenshots/Backend%20running.png)
 
 **Output:**
-
 ```
 Backend listening on port 3000
 ```
 
 **It worked!** 
 
------
+---
 
 ### **Step 3: Testing the Backend**
 
@@ -292,14 +278,13 @@ curl http://localhost:8080/
 ![Backend Running Confirmation](screenshots/Backend%20running%20confirmation.png)
 
 **Output:**
-
 ```
 Backend is running 
 ```
 
-**Perfect.** The backend is alive and responding.
+> **Perfect.** The backend is alive and responding.
 
------
+---
 
 ### **Step 4: Building the Frontend Dockerfile**
 
@@ -334,23 +319,19 @@ CMD ["run", "dev"]
 ![Frontend Dockerfile](screenshots/Frontend%20dockerfile.png)
 
 **Key differences from backend:**
-
-- `EXPOSE 5173` (Vite’s default port)
+- `EXPOSE 5173` (Vite's default port)
 - `CMD ["run", "dev"]` (runs Vite dev server)
 
 **This time I got the order right:**
-
 1. `COPY` first (bring files in)
-1. `RUN npm install` (install dependencies)
-1. `ENTRYPOINT` and `CMD` (define startup command)
+2. `RUN npm install` (install dependencies)
+3. `ENTRYPOINT` and `CMD` (define startup command)
 
 **Built the image:**
 
 ```bash
 docker build -t day-03-frontend .
 ```
-
-![Frontend Image Build](screenshots/Frontend%20image%20build.png)
 
 **Build succeeded!** No mistakes this time.
 
@@ -360,10 +341,9 @@ docker build -t day-03-frontend .
 docker run -p 8081:5173 day-03-frontend
 ```
 
-![Frontend Image Run](screenshots/Frontend%20image%20run.png)
+![Frontend Image Run](screenshots/Frontend%20image%20run%20.png)
 
 **Output:**
-
 ```
 > frontend@1.0.0 dev
 > vite --host
@@ -380,16 +360,15 @@ VITE v5.4.21  ready in 167 ms
 
 I opened `http://localhost:8081` in my browser and saw the React UI.
 
------
+---
 
-### **Step 5: The Big Mistake — Containers Can’t Talk**
+### **Step 5: The Big Mistake – Containers Can't Talk**
 
 Both containers were running:
-
 - Backend on `localhost:8080`
 - Frontend on `localhost:8081`
 
-I clicked the “Convert to PDF” button in the frontend.
+I clicked the "Convert to PDF" button in the frontend.
 
 **Nothing happened.**
 
@@ -399,38 +378,39 @@ I opened the browser console:
 Failed to fetch: http://localhost:3000/convert
 ```
 
-**Wait, what?**
+> **Wait, what?**
 
 The frontend is trying to reach `localhost:3000`, but the backend is on `localhost:8080`.
 
-**Oh, I see the issue.** Inside the frontend code (`App.jsx`), I hardcoded:
+Oh, I see the issue. Inside the frontend code (`App.jsx`), I hardcoded:
 
 ```javascript
 fetch("http://localhost:3000/convert")
 ```
 
-But that’s wrong. From the browser, I’m accessing:
-
+But that's wrong. From the browser, I'm accessing:
 - Frontend: `localhost:8081`
 - Backend: `localhost:8080`
 
 **Then I realized something bigger:**
 
-Even if I fix the port, this won’t work. The frontend and backend are in **separate containers**. They can’t reach each other using `localhost`.
+> Even if I fix the port, this won't work. The frontend and backend are in **separate containers**. They can't reach each other using `localhost`.
 
 **This is when it hit me:**
 
 On Day 1, I learned about Docker networks. Containers need to be on the same network to communicate by name.
 
-**But I never created a network.**
+> **But I never created a network.**
 
-I just ran the containers with `-p` flags. They’re isolated.
+I just ran the containers with `-p` flags. They're isolated.
 
------
+**Unlike my [first attempt](https://github.com/jillravaliya/jpeg-to-pdf-dockerized-app) where AI guided me through the networking setup perfectly, this time I had to figure it out myself.**
+
+---
 
 ### **Step 6: Creating the Network (Too Late)**
 
-I should have done this **before** running any containers. But I didn’t.
+I should have done this **before** running any containers. But I didn't.
 
 Now I had to fix it.
 
@@ -440,8 +420,6 @@ Now I had to fix it.
 docker network create app-network
 ```
 
-![Network Create](screenshots/network%20create.png)
-
 **Checked existing containers:**
 
 ```bash
@@ -449,16 +427,15 @@ docker ps
 ```
 
 **Output:**
-
 ```
 CONTAINER ID   IMAGE              COMMAND           PORTS                    NAMES
 4b60b32cac0b   day-03-frontend    "npm run dev"     0.0.0.0:8081->5173/tcp   agitated_feynman
 907a0b26bbd6   day-03-backend     "node app.js"     0.0.0.0:8080->3000/tcp   epic_khorana
 ```
 
-**Notice the names:** `agitated_feynman` and `epic_khorana`
+> **Notice the names:** `agitated_feynman` and `epic_khorana`
 
-These are **Docker’s random names** because I forgot to use `--name` when I ran the containers.
+These are **Docker's random names** because I forgot to use `--name` when I ran the containers.
 
 **What I should have done:**
 
@@ -467,9 +444,9 @@ docker run -p 8080:3000 --name backend --network app-network day-03-backend
 docker run -p 8081:5173 --name frontend --network app-network day-03-frontend
 ```
 
-**But I didn’t.** So now I have to connect the existing containers to the network.
+But I didn't. So now I have to connect the existing containers to the network.
 
------
+---
 
 ### **Step 7: Connecting Containers to the Network**
 
@@ -487,7 +464,6 @@ docker network inspect app-network
 ```
 
 **Output:**
-
 ```json
 "Containers": {
     "4b60b32cac0b": {
@@ -503,11 +479,11 @@ docker network inspect app-network
 
 **Both containers are now on the same network.**
 
------
+---
 
 ### **Step 8: Fixing the Frontend to Use Container Name**
 
-Now I needed to change the frontend code to use the backend’s **container name** instead of `localhost`.
+Now I needed to change the frontend code to use the backend's **container name** instead of `localhost`.
 
 **Updated `App.jsx`:**
 
@@ -519,9 +495,9 @@ fetch("http://localhost:3000/convert")
 fetch("http://epic_khorana:3000/convert")
 ```
 
-**But wait.** That’s ugly. I should have named it `backend`.
-
-**Lesson learned:** Always use `--name` when running containers.
+> **But wait.** That's ugly. I should have named it `backend`.
+>
+> **Lesson learned:** Always use `--name` when running containers.
 
 **Rebuilt the frontend:**
 
@@ -548,7 +524,7 @@ docker run -p 8081:5173 --name frontend --network app-network day-03-frontend
 fetch("http://backend:3000/convert")
 ```
 
-**But the backend container is still called `epic_khorana`.**
+But the backend container is still called `epic_khorana`.
 
 **Stopped and recreated backend with proper name:**
 
@@ -559,7 +535,6 @@ docker run -p 8080:3000 --name backend --network app-network day-03-backend
 ```
 
 **Now both containers have clean names:**
-
 - `backend`
 - `frontend`
 
@@ -569,75 +544,71 @@ docker run -p 8080:3000 --name backend --network app-network day-03-backend
 fetch("http://backend:3000/convert")
 ```
 
------
+---
 
 ### **Step 9: Final Test**
 
 I opened `http://localhost:8081` in my browser.
 
-Clicked “Choose file” → selected an image → clicked “Convert to PDF”.
+Clicked "Choose file" → selected an image → clicked "Convert to PDF".
 
-**The download prompt appeared.** 
+**The download prompt appeared.** 📄
 
 **It worked!**
 
 The frontend successfully sent the image to the backend, the backend converted it to PDF, and returned it to the browser.
 
-**Everything was finally connected.**
+> **Everything was finally connected.**
 
------
+---
 
 ## What I Actually Learned
 
 ### **1. Theory ≠ Practice**
 
 The first time I built this project with AI help, I understood the **concepts**:
-
 - Dockerfiles define containers
 - Networks connect containers
 - Port mapping exposes services
 
-But I couldn’t **execute** it. I didn’t know:
-
+But I couldn't **execute** it. I didn't know:
 - Why `COPY` must come before `RUN`
 - Why `CMD` needs array format
 - Why you create the network **first**
 
-**Understanding concepts and being able to build something are completely different skills.**
+> **Understanding concepts and being able to build something are completely different skills.**
 
------
+---
 
 ### **2. Order Matters (Everywhere)**
 
 **In Dockerfiles:**
-
 ```dockerfile
 # Wrong
-RUN npm install  # Fails (no files yet)
+RUN npm install  #  Fails (no files yet)
 COPY . .
 
 # Right
-COPY . .         # Files copied first
-RUN npm install  # Now can install
+COPY . .         #  Files copied first
+RUN npm install  #  Now can install
 ```
 
 **In Setup:**
-
 ```bash
 # Wrong
-docker run backend    # Containers isolated
+docker run backend    #  Containers isolated
 docker run frontend
-docker network create # Too late
+docker network create #  Too late
 
 # Right
-docker network create app-network        # Network first
-docker run --network app-network backend # Connected from start
+docker network create app-network        #  Network first
+docker run --network app-network backend #  Connected from start
 docker run --network app-network frontend
 ```
 
-**Everything has a sequence. Skip a step or do it in the wrong order, and things break.**
+> **Everything has a sequence. Skip a step or do it in the wrong order, and things break.**
 
------
+---
 
 ### **3. Flags Matter**
 
@@ -648,7 +619,6 @@ docker run -p 8080:3000 day-03-backend
 ```
 
 I got:
-
 - Random name (`epic_khorana`)
 - No network connection
 - Had to fix it manually later
@@ -660,25 +630,23 @@ docker run -p 8080:3000 --name backend --network app-network day-03-backend
 ```
 
 **Every flag has a purpose:**
-
 - `-p 8080:3000` → Port mapping (host:container)
 - `--name backend` → Predictable container name
 - `--network app-network` → Connect to network
 
-**Leaving them out doesn’t throw an error, but it makes everything harder later.**
+> **Leaving them out doesn't throw an error, but it makes everything harder later.**
 
------
+---
 
 ### **4. Container Names Matter**
 
-When I used Docker’s random names, my frontend code looked like:
+When I used Docker's random names, my frontend code looked like:
 
 ```javascript
 fetch("http://epic_khorana:3000/convert")
 ```
 
-That works, but it’s:
-
+That works, but it's:
 - Ugly
 - Not portable (name changes every time)
 - Hard to debug
@@ -691,19 +659,17 @@ fetch("http://backend:3000/convert")
 
 Clean, clear, predictable.
 
------
+---
 
-### **5. Localhost Doesn’t Work Between Containers**
+### **5. Localhost Doesn't Work Between Containers**
 
 This was a big mental shift.
 
 On my laptop:
-
 - Frontend: `localhost:8081`
 - Backend: `localhost:8080`
 
 **But inside containers:**
-
 - `localhost` = the container itself
 - Containers are isolated by default
 - They need a network to communicate
@@ -717,12 +683,11 @@ fetch("http://backend:3000")  //  Works (container name)
 fetch("http://localhost:3000") //  Doesn't work (isolated)
 ```
 
------
+---
 
 ### **6. Mistakes Teach More Than Perfect Code**
 
-My first version (with AI) had:
-
+My [first version (with AI)](https://github.com/jillravaliya/jpeg-to-pdf-dockerized-app) had:
 - Perfect Dockerfiles
 - Perfect commands
 - Perfect README
@@ -730,38 +695,37 @@ My first version (with AI) had:
 But I learned almost nothing.
 
 This version has:
-
 - `RUN` before `COPY` mistake
 - `CMD` syntax error
 - Network created too late
 - Random container names
 
-**And I learned 10x more.**
+> **And I learned 10x more.**
+>
+> **Because debugging forces you to understand what's actually happening.**
 
-**Because debugging forces you to understand what’s actually happening.**
-
------
+---
 
 ## The Difference Between Two Versions
 
-|First Version (AI-Assisted)|Second Version (Self-Built)|
-|---------------------------|---------------------------|
-|Perfect code               |Had mistakes               |
-|Everything worked          |Had to debug               |
-|Clean README               |This README                |
-|Couldn’t explain it        |Can explain every step     |
-|Couldn’t run it myself     |Can build it from scratch  |
-|Understood theory          |Understand practice        |
+| [First Version (AI-Assisted)](https://github.com/jillravaliya/jpeg-to-pdf-dockerized-app) | Second Version (Self-Built) |
+|------------------------------|------------------------------|
+| Perfect code | Had mistakes |
+| Everything worked | Had to debug |
+| Clean README | This README |
+| Couldn't explain it | Can explain every step |
+| Couldn't run it myself | Can build it from scratch |
+| Understood theory | Understand practice |
 
-**The first version looked perfect in the README.**
+> **The [first version](https://github.com/jillravaliya/jpeg-to-pdf-dockerized-app) looked perfect in the README.**
+>
+> **This version has mistakes documented.**
+>
+> **But this version is mine. I can run it. I can explain it. I can fix it when it breaks.**
+>
+> **That's the difference.**
 
-**This version has mistakes documented.**
-
-**But this version is mine. I can run it. I can explain it. I can fix it when it breaks.**
-
-**That’s the difference.**
-
------
+---
 
 ## My Failed Docker Setup (Before Fixing)
 
@@ -773,8 +737,8 @@ docker build -t day-03-backend Backend/
 docker build -t day-03-frontend Frontend/
 
 # Ran containers WITHOUT network setup
-docker run -p 8080:3000 day-03-backend    # No --name, no --network
-docker run -p 8081:5173 day-03-frontend   # No --name, no --network
+docker run -p 8080:3000 day-03-backend    #  No --name, no --network
+docker run -p 8081:5173 day-03-frontend   #  No --name, no --network
 
 # Result: Containers can't communicate
 ```
@@ -792,7 +756,7 @@ docker run -d -p 8081:5173 --name frontend --network app-network day-03-frontend
 # Result: Containers connected from the start
 ```
 
------
+---
 
 ## Final Working Setup
 
@@ -826,7 +790,7 @@ docker run -d -p 8081:5173 --name frontend --network app-network day-03-frontend
 - Frontend: `http://localhost:8081`
 - Backend: `http://localhost:8080`
 
------
+---
 
 ## Tech Stack
 
@@ -835,26 +799,25 @@ docker run -d -p 8081:5173 --name frontend --network app-network day-03-frontend
 - **Containerization:** Docker
 - **Networking:** Docker Bridge Network
 
------
+---
 
 ## Connect With Me
 
-I’m actively learning Docker, Kubernetes, and cloud infrastructure — documenting every step of the journey.
+I'm actively learning Docker, Kubernetes, and cloud infrastructure – documenting every step of the journey.
 
 - Email: **jillahir9999@gmail.com**
 - LinkedIn: [linkedin.com/in/jill-ravaliya-684a98264](https://linkedin.com/in/jill-ravaliya-684a98264)
 - GitHub: [github.com/jillravaliya](https://github.com/jillravaliya)
 
 **Open to:**
-
 - DevOps & Cloud Infrastructure roles
 - Mentorship & collaboration
 - Professional networking
 
------
+---
 
 ### If this helped you understand multi-container Docker apps, give it a star!
 
------
+---
 
 *Day 3 complete. Built it twice. Understood it once.*
